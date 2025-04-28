@@ -48,3 +48,4 @@ tinify>=1.6.0
 validators>=0.20.0
 python-whois==0.9.5
 dnspython
+emoji

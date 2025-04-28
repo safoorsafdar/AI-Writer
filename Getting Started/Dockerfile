@@ -15,29 +15,29 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # 3. Install build dependencies first (for cache efficiency)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        build-essential \
-        gcc \
-        git \
-        curl \
-        wget \
-        libffi-dev \
-        libssl-dev \
-        rustc \
-        cargo \
+    build-essential \
+    gcc \
+    git \
+    curl \
+    wget \
+    libffi-dev \
+    libssl-dev \
+    rustc \
+    cargo \
     && rm -rf /var/lib/apt/lists/*
 
 # 4. Set work directory
 WORKDIR /app
 
 # 5. Copy only requirements.txt first (for better caching)
-COPY ../../requirements.txt ./
+COPY ../requirements.txt .
 
 # 6. Install Python dependencies in builder
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # 7. Clone the latest ALwrity code from GitHub (after dependencies for cache efficiency)
-RUN git clone https://github.com/AJaySi/AI-Writer.git .
+COPY ../ .
 
 # 8. Copy only necessary files to the final image (runtime stage)
 FROM python:3.11-slim AS runtime
@@ -48,15 +48,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # 10. Create a non-root user for security
 RUN useradd -m alwrityuser
-USER alwrityuser
+# USER alwrityuser
 
 # 11. Set work directory
 WORKDIR /app
 
 # 12. Copy installed packages and app from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local /usr/local
 COPY --from=builder /app /app
 
+RUN chown -R alwrityuser:alwrityuser /app
 # 13. Expose Streamlit's default port
 EXPOSE 8501
 
