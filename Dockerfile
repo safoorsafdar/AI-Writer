@@ -30,14 +30,14 @@ RUN apt-get update && \
 WORKDIR /app
 
 # 5. Copy only requirements.txt first (for better caching)
-COPY ../requirements.txt .
+COPY requirements.txt .
 
 # 6. Install Python dependencies in builder
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # 7. Clone the latest ALwrity code from GitHub (after dependencies for cache efficiency)
-COPY ../ .
+COPY ./ .
 
 # 8. Copy only necessary files to the final image (runtime stage)
 FROM python:3.11-slim AS runtime
@@ -59,13 +59,16 @@ COPY --from=builder /app /app
 
 RUN chown -R alwrityuser:alwrityuser /app
 # 13. Expose Streamlit's default port
-EXPOSE 8501
+EXPOSE 5000
 
 # 14. Set environment variable for Streamlit (optional: disables telemetry)
 ENV STREAMLIT_TELEMETRY=0
 
 # 15. Default command: run ALwrity with Streamlit
-CMD ["streamlit", "run", "alwrity.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# CMD ["streamlit", "run", "alwrity.py", "--server.port=8501", "--server.address=0.0.0.0"]
+
+# Run the application
+CMD ["python", "app.py"]
 
 # =====================================================================
 # END OF DOCKERFILE

@@ -49,3 +49,5 @@ validators>=0.20.0
 python-whois==0.9.5
 dnspython
 emoji
+gunicorn==21.2.0
+flask==2.3.3
