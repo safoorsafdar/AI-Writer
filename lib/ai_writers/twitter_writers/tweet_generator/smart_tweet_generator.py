@@ -118,64 +118,6 @@ def predict_tweet_performance(tweet: str, target_audience: str, tone: str) -> Di
         "status": "excellent" if overall_score >= 80 else "good" if overall_score >= 60 else "fair" if overall_score >= 40 else "needs_improvement"
     }
 
-def generate_tweet_variations(
-    hook: str,
-    target_audience: str,
-    tone: str,
-    call_to_action: str = "",
-    keywords: str = "",
-    length: str = "medium",
-    num_variations: int = 3
-) -> List[Dict]:
-    """Generate multiple tweet variations with enhanced AI suggestions."""
-    # Enhanced prompt template for better AI suggestions
-    prompt_template = f"""
-    Create {num_variations} engaging tweet variations with the following parameters:
-    - Hook/Topic: {hook}
-    - Target Audience: {target_audience}
-    - Tone: {tone}
-    - Call to Action: {call_to_action}
-    - Keywords: {keywords}
-    - Length: {length}
-    
-    Each tweet should:
-    1. Start with an attention-grabbing hook
-    2. Include relevant hashtags
-    3. Use appropriate emojis
-    4. End with a clear call-to-action
-    5. Stay within Twitter's character limit
-    6. Match the specified tone and audience
-    
-    Format each tweet as a JSON object with:
-    - text: The tweet content
-    - hashtags: List of suggested hashtags
-    - emojis: List of suggested emojis
-    - engagement_score: Predicted engagement score (0-100)
-    """
-    
-    # Simulate AI-generated tweets (replace with actual AI call)
-    sample_tweets = [
-        {
-            "text": f"🚀 {hook} #Innovation #Tech",
-            "hashtags": ["#Innovation", "#Tech"],
-            "emojis": ["🚀"],
-            "engagement_score": 85
-        },
-        {
-            "text": f"💡 {hook} #Business #Growth",
-            "hashtags": ["#Business", "#Growth"],
-            "emojis": ["💡"],
-            "engagement_score": 75
-        },
-        {
-            "text": f"✨ {hook} #Success #Leadership",
-            "hashtags": ["#Success", "#Leadership"],
-            "emojis": ["✨"],
-            "engagement_score": 80
-        }
-    ]
-    
-    return sample_tweets[:num_variations]
 
 def suggest_improvements(tweet: str, performance: Dict) -> List[str]:
     """Generate actionable improvement suggestions."""
@@ -337,6 +279,169 @@ def smart_tweet_generator():
                 if st.button("Copy All Tweets"):
                     tweet_texts = "\n\n".join(tweet["text"] for tweet in tweets)
                     st.code(tweet_texts)
+
+class SmartTweetGenerator:
+    def generate_tweet_variations(
+    hook: str,
+    target_audience: str,
+    tone: str,
+    call_to_action: str = "",
+    keywords: str = "",
+    length: str = "medium",
+    num_variations: int = 3
+    ) -> List[Dict]:
+        """Generate multiple tweet variations with enhanced AI suggestions."""
+        # Enhanced prompt template for better AI suggestions
+        prompt_template = f"""
+        Create {num_variations} engaging tweet variations with the following parameters:
+        - Hook/Topic: {hook}
+        - Target Audience: {target_audience}
+        - Tone: {tone}
+        - Call to Action: {call_to_action}
+        - Keywords: {keywords}
+        - Length: {length}
+        
+        Each tweet should:
+        1. Start with an attention-grabbing hook
+        2. Include relevant hashtags
+        3. Use appropriate emojis
+        4. End with a clear call-to-action
+        5. Stay within Twitter's character limit
+        6. Match the specified tone and audience
+        
+        Format each tweet as a JSON object with:
+        - text: The tweet content
+        - hashtags: List of suggested hashtags
+        - emojis: List of suggested emojis
+        - engagement_score: Predicted engagement score (0-100)
+        """
+        
+        # Simulate AI-generated tweets (replace with actual AI call)
+        sample_tweets = [
+            {
+                "text": f"🚀 {hook} #Innovation #Tech",
+                "hashtags": ["#Innovation", "#Tech"],
+                "emojis": ["🚀"],
+                "engagement_score": 85
+            },
+            {
+                "text": f"💡 {hook} #Business #Growth",
+                "hashtags": ["#Business", "#Growth"],
+                "emojis": ["💡"],
+                "engagement_score": 75
+            },
+            {
+                "text": f"✨ {hook} #Success #Leadership",
+                "hashtags": ["#Success", "#Leadership"],
+                "emojis": ["✨"],
+                "engagement_score": 80
+            }
+        ]
+    
+    return sample_tweets[:num_variations]
+
+    
+    def _extract_hashtags(self, keywords):
+        """Extract hashtags from keywords string"""
+        if not keywords:
+            return []
+        
+        # Convert comma-separated keywords to hashtags
+        hashtags = []
+        for keyword in keywords.split(','):
+            keyword = keyword.strip()
+            if keyword:
+                # Remove existing # if present and join multi-word keywords
+                keyword = keyword.lstrip('#').replace(' ', '')
+                hashtags.append(f"#{keyword}")
+        
+        return hashtags
+    
+    def predict_tweet_performance(self, tweet_text, target_audience, tone):
+        """
+        Predict tweet performance metrics.
+        In a real implementation, this would use an ML model or API.
+        """
+        # Mock performance metrics calculation
+        char_count = len(tweet_text)
+        hashtag_count = tweet_text.count('#')
+        
+        # Calculate character count score (optimal is between 70-100 chars)
+        if 70 <= char_count <= 100:
+            char_score = 95
+        elif 100 < char_count <= 200:
+            char_score = 85
+        elif 200 < char_count <= 280:
+            char_score = 75
+        else:
+            char_score = 65
+        
+        # Calculate hashtag usage score (optimal is 1-3 hashtags)
+        if 1 <= hashtag_count <= 3:
+            hashtag_score = 90
+        elif hashtag_count == 0:
+            hashtag_score = 70
+        else:  # more than 3
+            hashtag_score = 80 - (hashtag_count - 3) * 5  # penalize for too many hashtags
+            hashtag_score = max(hashtag_score, 50)  # minimum score
+        
+        # Mock engagement and audience alignment scores
+        engagement_score = 75 + (hashtag_count * 5) if hashtag_count <= 3 else 75
+        audience_score = 80 if target_audience in tweet_text else 70
+        
+        # Calculate overall score (weighted average)
+        overall_score = (char_score * 0.25 + hashtag_score * 0.25 + 
+                         engagement_score * 0.3 + audience_score * 0.2)
+        
+        return {
+            "overall_score": overall_score,
+            "metrics": {
+                "character_count": {
+                    "value": char_count,
+                    "score": char_score,
+                    "recommendation": "Optimal: 70-100 characters"
+                },
+                "hashtag_usage": {
+                    "value": hashtag_count,
+                    "score": hashtag_score,
+                    "recommendation": "Optimal: 1-3 hashtags"
+                },
+                "engagement_potential": {
+                    "score": engagement_score,
+                    "recommendation": "Include questions or calls to action"
+                },
+                "audience_alignment": {
+                    "score": audience_score,
+                    "recommendation": f"Align content with {target_audience} interests"
+                }
+            }
+        }
+    
+    def suggest_improvements(self, tweet_text, performance):
+        """Generate suggestions to improve the tweet based on performance metrics"""
+        suggestions = []
+        metrics = performance["metrics"]
+        
+        # Character count suggestions
+        char_count = metrics["character_count"]["value"]
+        if char_count < 70:
+            suggestions.append("Consider adding more content to reach the optimal length (70-100 characters)")
+        elif char_count > 200:
+            suggestions.append("Consider shortening your tweet for better engagement")
+        
+        # Hashtag suggestions
+        hashtag_count = tweet_text.count('#')
+        if hashtag_count == 0:
+            suggestions.append("Add 1-3 relevant hashtags to increase visibility")
+        elif hashtag_count > 3:
+            suggestions.append("Consider reducing the number of hashtags to 1-3 for optimal engagement")
+        
+        # Add more suggestions based on other metrics
+        if performance["overall_score"] < 80:
+            suggestions.append("Include a clear call to action to boost engagement")
+            
+        return suggestions
+
 
 if __name__ == "__main__":
     smart_tweet_generator() 

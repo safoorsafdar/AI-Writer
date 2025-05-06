@@ -8,6 +8,7 @@ import traceback
 from dotenv import load_dotenv
 from functools import wraps
 
+from lib.ai_writers.ai_facebook_writer.modules.post_generator import FacebookPostGenerator
 from lib.ai_writers.linkedin_writer.modules.post_generator.linkedin_post_generator import LinkedInPostGenerator
 
 # Configure logging
@@ -121,8 +122,124 @@ def generate_linkedin_post():
         logger.error(f"Error generating LinkedIn post: {str(e)}")
         logger.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
-    
 
+
+
+@app.route('/api/generate-facebook-post', methods=['POST'])
+def generate_facebook_post():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        # Extract required parameters
+        business_type = data.get("business_type")
+        target_audience = data.get("target_audience")
+        
+        if not business_type or not target_audience:
+            return jsonify({"error": "Both 'business_type' and 'target_audience' are required"}), 400
+        
+        # Create generator instance
+        generator = FacebookPostGenerator()
+        
+        # Generate post
+        post_result = generator.generate_post(data)
+        
+        # Build response
+        response = {
+            "success": True,
+            "post": {
+                "business_type": business_type,
+                "target_audience": target_audience,
+                "post_goal": data.get("post_goal", "Increase engagement"),
+                "post_tone": data.get("post_tone", "Upbeat"),
+                "content": post_result["content"],
+                "media_type": data.get("media_type", "None"),
+                "media_settings": data.get("media_settings", {}),
+                "engagement_predictions": post_result["engagement_predictions"],
+                "optimization_suggestions": post_result["optimization_suggestions"]
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        return jsonify(response), 200
+        
+    except Exception as e:
+        logger.error(f"Error generating Facebook post: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/generate-tweets', methods=['POST'])
+def generate_tweets():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        # Extract parameters
+        hook = data.get("hook")
+        target_audience = data.get("target_audience", "General")
+        tone = data.get("tone", "Professional")
+        call_to_action = data.get("call_to_action", "")
+        keywords = data.get("keywords", "")
+        length = data.get("length", "medium")
+        num_variations = data.get("num_variations", 3)
+        
+        if not hook:
+            return jsonify({"error": "Tweet hook/topic is required"}), 400
+        
+        # Validate number of variations
+        if not isinstance(num_variations, int) or num_variations < 1 or num_variations > 5:
+            return jsonify({"error": "Number of variations must be between 1 and 5"}), 400
+        
+        # Create generator instance
+        generator = SmartTweetGenerator()
+        
+        # Generate tweet variations
+        tweets = generator.generate_tweet_variations(
+            hook, target_audience, tone,
+            call_to_action, keywords, length,
+            num_variations
+        )
+        
+        # Add performance metrics and suggestions for each tweet
+        enriched_tweets = []
+        for tweet in tweets:
+            performance = generator.predict_tweet_performance(tweet["text"], target_audience, tone)
+            suggestions = generator.suggest_improvements(tweet["text"], performance)
+            
+            enriched_tweets.append({
+                "id": tweet["id"],
+                "text": tweet["text"],
+                "metrics": tweet["metrics"],
+                "performance": performance,
+                "suggestions": suggestions
+            })
+        
+        # Build response
+        response = {
+            "success": True,
+            "tweets": enriched_tweets,
+            "request": {
+                "hook": hook,
+                "target_audience": target_audience,
+                "tone": tone,
+                "call_to_action": call_to_action,
+                "keywords": keywords,
+                "length": length,
+                "num_variations": num_variations
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        return jsonify(response), 200
+        
+    except Exception as e:
+        logger.error(f"Error generating tweets: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+    
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(host='0.0.0.0', port=port, debug=True)
